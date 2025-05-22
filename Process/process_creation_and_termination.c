@@ -1,24 +1,31 @@
-#include <pthread.h>
 #include <stdio.h>
-#include <unistd.h>  // <-- Add this line for sleep()
-
-void* printMessage(void* arg) {
-    char* msg = (char*)arg;
-    printf("Thread says: %s\n", msg);
-    return NULL;
-}
+#include <stdlib.h>
+#include <unistd.h>
+#include <sys/wait.h>
 
 int main() {
-    pthread_t thread;
-    char* message = "Hello from thread!";
+    pid_t pid;
 
-    pthread_create(&thread, NULL, printMessage, (void*)message);
-    pthread_join(thread, NULL);
+    pid = fork(); 
 
-    for (int i = 0; i < 5; i++) {
-        printf("%d\n", i);
-        sleep(1);
+    if (pid < 0) {
+        
+        perror("fork failed");
+        return 1;
+    } else if (pid == 0) {
+        
+        printf("Child Process: PID = %d, PPID = %d\n", getpid(), getppid());
+        printf("Child Process: Doing some work...\n");
+        sleep(2);
+        printf("Child Process: Exiting.\n");
+        exit(0);  
+    } else {
+       
+        printf("Parent Process: PID = %d, Child PID = %d\n", getpid(), pid);
+        printf("Parent Process: Waiting for child to terminate...\n");
+        wait(NULL); 
+        printf("Parent Process: Child terminated. Exiting.\n");
     }
- printf(“join”);
+
     return 0;
 }
